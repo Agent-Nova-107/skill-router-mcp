@@ -19,8 +19,7 @@
     "build": "npm run clean && tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "start": "tsx src/index.ts",
-    "test": "node --import tsx --test test/*.test.ts",
-    "prepare": "npm run build"
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "keywords": [
     "mcp",
