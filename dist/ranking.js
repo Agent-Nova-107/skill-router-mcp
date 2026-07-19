@@ -10,14 +10,38 @@ const INTENT_HINTS = {
     learning: ["teach", "learn", "documentation", "research"],
     general: [],
 };
+const TECHNOLOGIES = {
+    rust: ["rust", "cargo", "clippy"],
+    python: ["python", "django", "fastapi", "flask"],
+    php: ["php", "laravel"],
+    go: ["go", "golang"],
+    java: ["java", "spring", "springboot", "quarkus"],
+    cpp: ["c++", "cpp"],
+    dotnet: ["c#", "csharp", "dotnet"],
+    swift: ["swift", "swiftui", "ios"],
+    kotlin: ["kotlin", "android"],
+    dart: ["dart", "flutter"],
+    javascript: [
+        "javascript",
+        "typescript",
+        "react",
+        "nextjs",
+        "vue",
+        "angular",
+        "svelte",
+        "nodejs",
+    ],
+    perl: ["perl"],
+};
 export function rankSkills(skills, query, includeIntentBoost = false) {
     const queryTokens = tokenizeExact(query);
     const expandedQueryTokens = tokenize(query);
     const normalizedQuery = normalize(query);
     const intent = detectIntent(query);
     const intentHints = includeIntentBoost ? INTENT_HINTS[intent] ?? [] : [];
+    const taskTechnologies = detectTechnologies(queryTokens);
     const ranked = skills
-        .map((skill) => scoreSkill(skill, queryTokens, expandedQueryTokens, normalizedQuery, intentHints))
+        .map((skill) => scoreSkill(skill, queryTokens, expandedQueryTokens, normalizedQuery, intentHints, taskTechnologies))
         .filter((skill) => skill.score > 0)
         .sort(compareRanked);
     return deduplicateByName(ranked);
@@ -60,7 +84,7 @@ export function recommend(skills, task, indexedAt, primaryLimit = 5, candidateLi
         indexedAt,
     };
 }
-function scoreSkill(skill, queryTokens, expandedQueryTokens, normalizedQuery, intentHints) {
+function scoreSkill(skill, queryTokens, expandedQueryTokens, normalizedQuery, intentHints, taskTechnologies) {
     const name = normalize(skill.name);
     const description = normalize(skill.description);
     const body = normalize(skill.body);
@@ -103,6 +127,13 @@ function scoreSkill(skill, queryTokens, expandedQueryTokens, normalizedQuery, in
     if (skill.invocationMode === "manual-only") {
         reasons.push("manual invocation only");
     }
+    const skillTechnologies = detectTechnologies(tokenizeExact(`${skill.name} ${skill.description}`));
+    if (taskTechnologies.size > 0 &&
+        skillTechnologies.size > 0 &&
+        ![...taskTechnologies].some((technology) => skillTechnologies.has(technology))) {
+        score -= 40;
+        reasons.push(`technology mismatch: ${[...skillTechnologies].join(", ")}`);
+    }
     return {
         name: skill.name,
         description: skill.description,
@@ -131,5 +162,14 @@ function intersection(left, right) {
 }
 function compareRanked(left, right) {
     return right.score - left.score || left.name.localeCompare(right.name);
+}
+function detectTechnologies(tokens) {
+    const detected = new Set();
+    for (const [technology, aliases] of Object.entries(TECHNOLOGIES)) {
+        if (aliases.some((alias) => tokens.has(alias))) {
+            detected.add(technology);
+        }
+    }
+    return detected;
 }
 //# sourceMappingURL=ranking.js.map

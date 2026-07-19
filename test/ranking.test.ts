@@ -60,6 +60,46 @@ test("tokenization treats object prototype names as plain input", () => {
   assert.doesNotThrow(() => tokenize("constructor function toString"));
 });
 
+test("penalizes specialist skills for a conflicting technology", () => {
+  const result = recommend(
+    [
+      skill("rust-testing", "Rust unit and integration testing"),
+      skill("laravel-tdd", "Laravel PHP testing with PHPUnit"),
+      skill("tdd", "Generic test-driven development"),
+    ],
+    "Implement a Rust feature with tests",
+    "2026-07-19T00:00:00.000Z",
+    3,
+    10,
+  );
+  const ordered = [
+    ...result.primary,
+    ...result.complementary,
+    ...result.additionalCandidates,
+  ];
+  const rustIndex = ordered.findIndex(
+    (candidate) => candidate.name === "rust-testing",
+  );
+  const laravelIndex = ordered.findIndex(
+    (candidate) => candidate.name === "laravel-tdd",
+  );
+
+  assert.ok(rustIndex >= 0);
+  assert.ok(laravelIndex === -1 || rustIndex < laravelIndex);
+});
+
+test("detects French implementation language", () => {
+  const result = recommend(
+    skills,
+    "Concevoir puis implémenter une fonctionnalité Rust avec tests et revue",
+    "2026-07-19T00:00:00.000Z",
+    5,
+    15,
+  );
+
+  assert.equal(result.intent, "implementation");
+});
+
 function skill(
   name: string,
   description: string,

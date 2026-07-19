@@ -13,6 +13,30 @@ const INTENT_HINTS: Record<string, string[]> = {
   general: [],
 };
 
+const TECHNOLOGIES: Record<string, string[]> = {
+  rust: ["rust", "cargo", "clippy"],
+  python: ["python", "django", "fastapi", "flask"],
+  php: ["php", "laravel"],
+  go: ["go", "golang"],
+  java: ["java", "spring", "springboot", "quarkus"],
+  cpp: ["c++", "cpp"],
+  dotnet: ["c#", "csharp", "dotnet"],
+  swift: ["swift", "swiftui", "ios"],
+  kotlin: ["kotlin", "android"],
+  dart: ["dart", "flutter"],
+  javascript: [
+    "javascript",
+    "typescript",
+    "react",
+    "nextjs",
+    "vue",
+    "angular",
+    "svelte",
+    "nodejs",
+  ],
+  perl: ["perl"],
+};
+
 export function rankSkills(
   skills: SkillRecord[],
   query: string,
@@ -23,6 +47,7 @@ export function rankSkills(
   const normalizedQuery = normalize(query);
   const intent = detectIntent(query);
   const intentHints = includeIntentBoost ? INTENT_HINTS[intent] ?? [] : [];
+  const taskTechnologies = detectTechnologies(queryTokens);
   const ranked = skills
     .map((skill) =>
       scoreSkill(
@@ -31,6 +56,7 @@ export function rankSkills(
         expandedQueryTokens,
         normalizedQuery,
         intentHints,
+        taskTechnologies,
       ),
     )
     .filter((skill) => skill.score > 0)
@@ -98,6 +124,7 @@ function scoreSkill(
   expandedQueryTokens: Set<string>,
   normalizedQuery: string,
   intentHints: string[],
+  taskTechnologies: Set<string>,
 ): RankedSkill {
   const name = normalize(skill.name);
   const description = normalize(skill.description);
@@ -152,6 +179,17 @@ function scoreSkill(
   if (skill.invocationMode === "manual-only") {
     reasons.push("manual invocation only");
   }
+  const skillTechnologies = detectTechnologies(
+    tokenizeExact(`${skill.name} ${skill.description}`),
+  );
+  if (
+    taskTechnologies.size > 0 &&
+    skillTechnologies.size > 0 &&
+    ![...taskTechnologies].some((technology) => skillTechnologies.has(technology))
+  ) {
+    score -= 40;
+    reasons.push(`technology mismatch: ${[...skillTechnologies].join(", ")}`);
+  }
 
   return {
     name: skill.name,
@@ -184,4 +222,14 @@ function intersection(left: Set<string>, right: Set<string>): string[] {
 
 function compareRanked(left: RankedSkill, right: RankedSkill): number {
   return right.score - left.score || left.name.localeCompare(right.name);
+}
+
+function detectTechnologies(tokens: Set<string>): Set<string> {
+  const detected = new Set<string>();
+  for (const [technology, aliases] of Object.entries(TECHNOLOGIES)) {
+    if (aliases.some((alias) => tokens.has(alias))) {
+      detected.add(technology);
+    }
+  }
+  return detected;
 }

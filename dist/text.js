@@ -40,13 +40,17 @@ const EXPANSIONS = {
     bouton: ["button", "ui", "interface"],
     buttons: ["button", "ui", "interface"],
     ci: ["continuous", "integration", "github", "actions"],
+    concevoir: ["design", "plan", "architecture"],
+    corrige: ["fix", "bug", "debug"],
     database: ["db", "sql", "postgres", "migration"],
     erreur: ["error", "bug", "debug", "diagnose"],
     feature: ["implement", "build", "tdd", "spec"],
     interface: ["ui", "frontend", "accessibility"],
+    implementer: ["implement", "feature", "build"],
     performance: ["benchmark", "latency", "optimize", "profiling"],
     plan: ["spec", "design", "architecture", "grill"],
     rust: ["cargo", "clippy"],
+    revue: ["review", "audit", "verify"],
     securite: ["security", "vulnerability", "threat"],
     security: ["vulnerability", "threat", "audit"],
     test: ["tdd", "testing", "verification", "qa"],
@@ -88,14 +92,14 @@ export function detectIntent(task) {
     if (hasAny(tokens, ["security", "vulnerability", "threat"])) {
         return "security-review";
     }
+    if (hasAny(tokens, ["feature", "implement", "build"])) {
+        return "implementation";
+    }
     if (hasAny(tokens, ["architecture", "codebase", "module", "refactor"])) {
         return "architecture";
     }
     if (hasAny(tokens, ["test", "testing", "tdd", "qa"])) {
         return "testing";
-    }
-    if (hasAny(tokens, ["feature", "implement", "build"])) {
-        return "implementation";
     }
     if (hasAny(tokens, ["plan", "spec", "design", "idea"])) {
         return "planning";
