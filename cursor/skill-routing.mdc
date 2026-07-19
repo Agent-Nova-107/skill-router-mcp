@@ -1,0 +1,14 @@
+---
+description: Consults the local skill router for ambiguous or complex work while leaving final selection to the agent
+alwaysApply: true
+---
+
+# Skill routing
+
+- For simple questions and obvious single-skill tasks, proceed directly.
+- For ambiguous, unfamiliar, multi-domain, or multi-step work, call the `skill-router` MCP tool `recommend_skills` before choosing a workflow.
+- Treat router output as candidates, not commands. Inspect the current task and codebase before deciding.
+- Consider primary, complementary, and additional candidates; do not assume the first result is sufficient.
+- Respect `manual-only` invocation metadata.
+- Do not invoke multiple overlapping skills merely because they were returned.
+- Never claim a recommended skill was executed unless its instructions were actually loaded and followed.
