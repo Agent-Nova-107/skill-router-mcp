@@ -29,7 +29,7 @@ All tools are declared read-only and idempotent.
 ## Install
 
 ```bash
-npm install -g github:Agent-Nova-107/skill-router-mcp
+npm install -g https://github.com/Agent-Nova-107/skill-router-mcp/archive/refs/heads/main.tar.gz
 ```
 
 Add the server to Cursor's user MCP configuration:
